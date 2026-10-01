@@ -266,6 +266,51 @@ class OpenAIGenerator:
         return answer
 
 
+GEMINI_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+GEMINI_MIN_INTERVAL_SECONDS = 5.0
+
+
+class GeminiGenerator:
+    """Same prompt and settings as OpenAIGenerator, served by Gemini's
+    OpenAI-compatible endpoint. Used only when OPENAI_API_KEY is not set."""
+
+    def __init__(self, max_output_tokens: int = 300) -> None:
+        api_key = os.getenv("GEMINI_API_KEY", "").strip()
+        self.model = os.getenv("GEMINI_MODEL", "").strip()
+        if not api_key:
+            raise RuntimeError("GEMINI_API_KEY is missing from .env")
+        if not self.model:
+            raise RuntimeError("GEMINI_MODEL is missing from .env")
+        self.client = OpenAI(api_key=api_key, base_url=GEMINI_OPENAI_BASE_URL)
+        self.max_output_tokens = max_output_tokens
+        self._last_request = 0.0
+
+    def generate(self, prompt: str) -> str:
+        # Free tier allows 15 requests per minute; pace calls to stay under it.
+        wait = GEMINI_MIN_INTERVAL_SECONDS - (time.monotonic() - self._last_request)
+        if wait > 0:
+            time.sleep(wait)
+        self._last_request = time.monotonic()
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+            max_tokens=self.max_output_tokens,
+        )
+        answer = (response.choices[0].message.content or "").strip()
+        if not answer:
+            raise RuntimeError("Gemini returned an empty answer")
+        return answer
+
+
+def _default_generator() -> TextGenerator:
+    if not os.getenv("OPENAI_API_KEY", "").strip() and os.getenv(
+        "GEMINI_API_KEY", ""
+    ).strip():
+        return GeminiGenerator()
+    return OpenAIGenerator()
+
+
 @dataclass(frozen=True)
 class DomainResponse:
     question: str
@@ -299,7 +344,7 @@ class DomainAssistant:
         return cls(
             corpus_id,
             BM25Retriever(chunks),
-            generator if generator is not None else OpenAIGenerator(),
+            generator if generator is not None else _default_generator(),
             top_k,
         )
 
