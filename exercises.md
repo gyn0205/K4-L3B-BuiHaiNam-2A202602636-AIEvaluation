@@ -162,31 +162,31 @@ và quyết định thiết kế, không chép lại toàn bộ QA.
 
 | Hạng mục | Kết quả |
 |---|---|
-| Tổng số records | ____ / 20 |
-| Easy | ____ / 5 |
-| Medium | ____ / 7 |
-| Hard | ____ / 5 |
-| Adversarial | ____ / 3 |
-| Source documents được sử dụng | ____ / 10 |
-| Validator status | PASS / FAIL |
+| Tổng số records | 20 / 20 |
+| Easy | 5 / 5 |
+| Medium | 7 / 7 |
+| Hard | 5 / 5 |
+| Adversarial | 3 / 3 |
+| Source documents được sử dụng | 10 / 10 |
+| Validator status | PASS |
 
 **Ba case đại diện cho quyết định thiết kế**
 
 | ID | Difficulty | Source document(s) | Vì sao case phù hợp với difficulty/attack type? |
 |---|---|---|---|
-| | | | |
-| | | | |
-| | | | |
+| M07 | Medium | `08_accounts_privacy_and_security.md`, `02_orders_and_payments.md` | Không có điều kiện ngoại lệ hay phiên bản chính sách, nhưng câu trả lời đúng phải ghép một quy trình nhiều bước (reset password, revoke sessions, bật MFA, liên hệ Account Security) với quy tắc huỷ đơn ở trạng thái `Confirmed` nằm ở tài liệu khác. Tra một câu đơn lẻ không đủ, nên đây là Medium chứ không phải Easy. |
+| H01 | Hard | `09_escalation_and_policy_updates.md`, `05_returns_and_exchanges.md` | Câu hỏi cài sẵn tiền đề "14-day window" của Return Policy v2.0, trong khi đơn đặt ngày 28/8/2026 thuộc v1.0. Phải suy luận ba bước: (1) phiên bản được chọn theo ngày đặt hàng, (2) v1.0 chỉ cho 7 ngày với thiết bị đã mở, (3) số ngày đếm từ ngày giao 3/9 nên hạn là 10/9, ngày 12/9 đã quá hạn. Một hệ thống chỉ retrieve tài liệu 05 (v2.0 hiện hành) sẽ trả lời sai là "còn hạn". |
+| A03 | Adversarial (`false_premise_or_ambiguous_trap`) | `00_system_scope.md`, `03_promotions_and_membership.md`, `06_warranty_policy.md`, `07_repair_and_technical_support.md` | Câu hỏi khẳng định sai rằng OrbitPlus kéo dài bảo hành PulsePhone X lên 36 tháng rồi hỏi "làm thế nào", dụ trợ lý chấp nhận tiền đề. Expected answer yêu cầu bác tiền đề bằng evidence (OrbitPlus không extend warranty, bảo hành 24 tháng), không bịa quyền lợi hay hứa ngoại lệ theo `00_system_scope.md`, và vẫn hữu ích bằng cách chỉ sang quy trình báo giá ngoài bảo hành. |
 
 **Điểm khó nhất khi xây dựng expected answer hoặc evidence là gì?**
 
-> *Câu trả lời:*
+> *Câu trả lời:* Khó nhất là giữ expected answer nằm trọn trong những gì evidence thực sự nói, nhất là ở các case Hard. Ví dụ ở H04 (trả bundle đã mở, giữ quà tặng, thanh toán một phần bằng gift card), corpus nêu phí restocking 10% và việc khấu trừ giá trị quà tặng nhưng không nói rõ 10% tính trên cơ sở nào hay khoản khấu trừ được phân bổ giữa thẻ và gift card ra sao, nên mình bỏ ý định đưa ra con số hoàn tiền cụ thể và chỉ mô tả các khoản khấu trừ. Tương tự, mọi phép tính có trong đáp án (USD 100 ở M03, hạn 10/9 ở H01, 90 ngày so với 1 tháng ở H03) đều chỉ dùng số liệu có trong câu hỏi và quy tắc trong corpus. Điểm khó thứ hai là provenance: đoạn trích phải nguyên văn, nên với các câu cần nhiều điều kiện mình tách thành nhiều context ngắn, mỗi context đỡ đúng một claim, thay vì chép cả đoạn văn.
 
 **Xác nhận:**
 
-- [ ] Mọi claim trong expected answer đều có evidence hỗ trợ.
-- [ ] Không có questions trùng ý và không dùng kiến thức ngoài corpus.
-- [ ] `python validate_golden_dataset.py` báo `PASS`.
+- [x] Mọi claim trong expected answer đều có evidence hỗ trợ.
+- [x] Không có questions trùng ý và không dùng kiến thức ngoài corpus.
+- [x] `python validate_golden_dataset.py` báo `PASS`.
 
 ### Exercise 3.2 — Benchmark Run
 
